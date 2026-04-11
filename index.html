@@ -1,0 +1,1172 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>お客様カード</title>
+  <style>
+    :root {
+      --primary: #4a7c59;
+      --primary-light: #e8f0ea;
+      --accent: #2c5f3a;
+      --gray: #6b7280;
+      --light: #f9fafb;
+      --border: #d1d5db;
+      --radius: 10px;
+      --shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Hiragino Sans', 'Yu Gothic UI', 'Meiryo', sans-serif;
+      background: #f0f4f1;
+      color: #1f2937;
+      min-height: 100vh;
+    }
+
+    /* ===== Header ===== */
+    .header {
+      background: var(--primary);
+      color: white;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+    .header h1 { font-size: 22px; font-weight: 700; letter-spacing: 2px; }
+    .header-right { font-size: 14px; text-align: right; line-height: 1.6; }
+    .header-right input[type="text"],
+    .header-right input[type="date"] {
+      background: rgba(255,255,255,0.2);
+      border: 1px solid rgba(255,255,255,0.4);
+      border-radius: 6px;
+      color: white;
+      padding: 4px 8px;
+      font-size: 14px;
+      width: 140px;
+    }
+    .header-right input::placeholder { color: rgba(255,255,255,0.7); }
+
+    /* ===== Steps Navigation ===== */
+    .steps-nav {
+      display: flex;
+      background: white;
+      border-bottom: 2px solid var(--border);
+      overflow: hidden;
+    }
+    .step-tab {
+      flex: 1;
+      padding: 14px 8px;
+      text-align: center;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--gray);
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      transition: all 0.2s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+    .step-tab .step-num {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: var(--border);
+      color: white;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 700;
+      transition: background 0.2s;
+    }
+    .step-tab.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+    }
+    .step-tab.active .step-num {
+      background: var(--primary);
+    }
+    .step-tab.done .step-num {
+      background: #10b981;
+    }
+    .step-tab.done { color: #10b981; }
+
+    /* ===== Main Content ===== */
+    .container { max-width: 900px; margin: 0 auto; padding: 20px 16px 40px; }
+
+    .step-panel { display: none; }
+    .step-panel.active { display: block; }
+
+    /* ===== Cards ===== */
+    .card {
+      background: white;
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow);
+    }
+    .card-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--accent);
+      border-left: 4px solid var(--primary);
+      padding-left: 10px;
+      margin-bottom: 16px;
+    }
+
+    /* ===== Form Fields ===== */
+    .form-group { margin-bottom: 16px; }
+    .form-row {
+      display: grid;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .form-row.col-2 { grid-template-columns: 1fr 1fr; }
+    .form-row.col-3 { grid-template-columns: 1fr 1fr 1fr; }
+    .form-row.col-auto { grid-template-columns: auto 1fr; }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--gray);
+      margin-bottom: 6px;
+    }
+    label .required {
+      color: #ef4444;
+      margin-left: 4px;
+      font-size: 12px;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="tel"],
+    input[type="number"],
+    input[type="date"],
+    select,
+    textarea {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-size: 16px;
+      font-family: inherit;
+      background: white;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      -webkit-appearance: none;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(74,124,89,0.15);
+    }
+    textarea { resize: vertical; min-height: 80px; }
+
+    /* ===== Gender Radio ===== */
+    .radio-group {
+      display: flex;
+      gap: 12px;
+    }
+    .radio-btn {
+      flex: 1;
+      position: relative;
+    }
+    .radio-btn input { position: absolute; opacity: 0; width: 0; }
+    .radio-btn label {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      color: var(--gray);
+      margin: 0;
+    }
+    .radio-btn input:checked + label {
+      border-color: var(--primary);
+      background: var(--primary-light);
+      color: var(--accent);
+    }
+
+    /* ===== Checkbox Group ===== */
+    .checkbox-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .check-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 15px;
+    }
+    .check-item:hover { border-color: var(--primary); background: var(--primary-light); }
+    .check-item input[type="checkbox"] {
+      width: 20px; height: 20px;
+      min-width: 20px;
+      accent-color: var(--primary);
+      cursor: pointer;
+    }
+    .check-item.checked {
+      border-color: var(--primary);
+      background: var(--primary-light);
+    }
+    .other-input-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      grid-column: 1 / -1;
+    }
+
+    /* ===== Agreement Section ===== */
+    .agreement-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .agreement-item:hover { border-color: var(--primary); }
+    .agreement-item input[type="checkbox"] {
+      width: 22px; height: 22px;
+      min-width: 22px;
+      margin-top: 2px;
+      accent-color: var(--primary);
+      cursor: pointer;
+    }
+    .agreement-item.checked { border-color: var(--primary); background: var(--primary-light); }
+    .agreement-text { font-size: 14px; line-height: 1.6; }
+    .agreement-text strong { color: var(--accent); }
+
+    /* ===== Product Table ===== */
+    .product-search-bar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .product-search-bar input {
+      flex: 1;
+      padding: 10px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-size: 15px;
+    }
+
+    .product-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    @media (min-width: 700px) {
+      .product-grid { grid-template-columns: 1fr 1fr 1fr; }
+    }
+
+    .product-item {
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: 10px;
+      background: white;
+      transition: all 0.2s;
+    }
+    .product-item.selected {
+      border-color: var(--primary);
+      background: var(--primary-light);
+    }
+    .product-name { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+    .product-price { font-size: 12px; color: var(--gray); margin-bottom: 8px; }
+    .product-price span { font-size: 14px; font-weight: 700; color: var(--accent); }
+
+    .qty-control {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .qty-btn {
+      width: 32px; height: 32px;
+      border: 1.5px solid var(--border);
+      border-radius: 6px;
+      background: white;
+      font-size: 18px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.15s;
+      color: var(--accent);
+      flex-shrink: 0;
+    }
+    .qty-btn:active { transform: scale(0.9); }
+    .qty-btn.minus { color: #ef4444; border-color: #fca5a5; }
+    .qty-btn.plus { color: var(--accent); border-color: var(--primary); background: var(--primary-light); }
+    .qty-display {
+      flex: 1;
+      text-align: center;
+      font-size: 16px;
+      font-weight: 700;
+      min-width: 30px;
+    }
+    .variant-input {
+      margin-top: 6px;
+    }
+    .variant-input input {
+      padding: 6px 8px;
+      font-size: 13px;
+      border-radius: 6px;
+    }
+
+    /* ===== Total Bar ===== */
+    .total-bar {
+      position: sticky;
+      bottom: 0;
+      background: white;
+      border-top: 2px solid var(--border);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 -4px 12px rgba(0,0,0,0.08);
+      z-index: 50;
+    }
+    .total-bar .total-label { font-size: 14px; color: var(--gray); }
+    .total-bar .total-amount {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--accent);
+    }
+    .total-bar .total-tax { font-size: 13px; color: var(--gray); margin-top: 2px; }
+    .total-info { text-align: right; }
+
+    /* ===== Buttons ===== */
+    .btn-row {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+    }
+    .btn {
+      flex: 1;
+      padding: 16px;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-secondary {
+      background: white;
+      border: 2px solid var(--border);
+      color: var(--gray);
+    }
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+    .btn-primary:active, .btn-secondary:active { transform: scale(0.98); }
+    .btn-submit {
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: white;
+      font-size: 18px;
+      padding: 18px;
+    }
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* ===== Modal ===== */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal {
+      background: white;
+      border-radius: 16px;
+      padding: 32px 24px;
+      max-width: 400px;
+      width: 90%;
+      text-align: center;
+    }
+    .modal-icon { font-size: 56px; margin-bottom: 16px; }
+    .modal h2 { font-size: 22px; font-weight: 700; margin-bottom: 12px; }
+    .modal p { font-size: 15px; color: var(--gray); line-height: 1.7; margin-bottom: 24px; }
+    .modal .btn { max-width: 200px; margin: 0 auto; }
+
+    /* ===== Loading ===== */
+    .loading-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(255,255,255,0.85);
+      z-index: 300;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .loading-overlay.show { display: flex; }
+    .spinner {
+      width: 48px; height: 48px;
+      border: 4px solid var(--border);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ===== Postal Code ===== */
+    .postal-row { display: flex; gap: 8px; align-items: flex-end; }
+    .postal-row input { flex: 1; }
+    .postal-search-btn {
+      padding: 12px 14px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      font-family: inherit;
+    }
+
+    /* ===== Date fields ===== */
+    .date-fields { display: flex; gap: 8px; align-items: center; }
+    .date-fields input[type="number"] { width: 80px; }
+    .date-fields input.month { width: 70px; }
+    .date-fields input.day { width: 70px; }
+    .date-sep { font-size: 18px; color: var(--gray); }
+
+    /* ===== Summary ===== */
+    .summary-section { margin-bottom: 16px; }
+    .summary-row {
+      display: flex;
+      padding: 8px 0;
+      border-bottom: 1px solid #f3f4f6;
+      font-size: 14px;
+    }
+    .summary-row .s-label { color: var(--gray); width: 120px; flex-shrink: 0; }
+    .summary-row .s-value { font-weight: 600; }
+
+    .selected-products-summary { margin-top: 12px; }
+    .sps-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 10px;
+      background: var(--primary-light);
+      border-radius: 6px;
+      margin-bottom: 6px;
+      font-size: 14px;
+    }
+    .sps-item .name { font-weight: 600; }
+    .sps-item .subtotal { color: var(--accent); font-weight: 700; }
+
+    @media (max-width: 600px) {
+      .form-row.col-2, .form-row.col-3 { grid-template-columns: 1fr; }
+      .checkbox-grid { grid-template-columns: 1fr; }
+      .product-grid { grid-template-columns: 1fr 1fr; }
+      .header h1 { font-size: 18px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <h1>お客様カード</h1>
+  <div class="header-right">
+    <div style="margin-bottom:4px;">
+      <input type="date" id="headerDate">
+    </div>
+    <div>
+      担当: <input type="text" id="headerStaff" placeholder="担当者名" style="width:110px;">
+    </div>
+  </div>
+</div>
+
+<!-- Steps Navigation -->
+<div class="steps-nav">
+  <div class="step-tab active" data-step="1" onclick="goToStep(1)">
+    <span class="step-num">1</span>
+    <span>基本情報</span>
+  </div>
+  <div class="step-tab" data-step="2" onclick="goToStep(2)">
+    <span class="step-num">2</span>
+    <span>お肌・ご要望</span>
+  </div>
+  <div class="step-tab" data-step="3" onclick="goToStep(3)">
+    <span class="step-num">3</span>
+    <span>購入商品</span>
+  </div>
+  <div class="step-tab" data-step="4" onclick="goToStep(4)">
+    <span class="step-num">4</span>
+    <span>確認・送信</span>
+  </div>
+</div>
+
+<!-- Main Container -->
+<div class="container">
+
+  <!-- ===== STEP 1: 基本情報 ===== -->
+  <div class="step-panel active" id="step1">
+    <div class="card">
+      <div class="card-title">お名前</div>
+      <div class="form-row col-2">
+        <div>
+          <label>フリガナ（姓）</label>
+          <input type="text" id="furigana_sei" placeholder="例：ヤマダ">
+        </div>
+        <div>
+          <label>フリガナ（名）</label>
+          <input type="text" id="furigana_mei" placeholder="例：ハナコ">
+        </div>
+      </div>
+      <div class="form-row col-2">
+        <div>
+          <label>お名前（姓）<span class="required">必須</span></label>
+          <input type="text" id="name_sei" placeholder="例：山田">
+        </div>
+        <div>
+          <label>お名前（名）<span class="required">必須</span></label>
+          <input type="text" id="name_mei" placeholder="例：花子">
+        </div>
+      </div>
+      <div class="form-row col-2">
+        <div>
+        <div>
+          <label>性別 <span class="required">必須</span></label>
+          <div class="radio-group" id="genderGroup">
+            <div class="radio-btn">
+              <input type="radio" name="gender" id="male" value="男">
+              <label for="male">男性</label>
+            </div>
+            <div class="radio-btn">
+              <input type="radio" name="gender" id="female" value="女">
+              <label for="female">女性</label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">ご住所</div>
+      <div class="form-group">
+        <label>郵便番号</label>
+        <div class="postal-row">
+          <input type="text" id="postal" placeholder="例：123-4567" maxlength="8"
+            oninput="formatPostal(this)">
+          <button class="postal-search-btn" onclick="searchAddress()">住所検索</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>ご住所（都道府県・市区町村）</label>
+        <input type="text" id="address1" placeholder="例：東京都渋谷区">
+      </div>
+      <div class="form-group">
+        <label>ご住所（番地・建物名・部屋番号）</label>
+        <input type="text" id="address2" placeholder="例：1-2-3 ○○マンション 101号">
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">連絡先</div>
+      <div class="form-row col-2">
+        <div>
+          <label>電話番号</label>
+          <input type="tel" id="tel" placeholder="例：03-1234-5678">
+        </div>
+        <div>
+          <label>携帯番号</label>
+          <input type="tel" id="mobile" placeholder="例：090-1234-5678">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>メールアドレス</label>
+        <input type="email" id="email" placeholder="例：example@email.com">
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">お誕生日</div>
+      <div class="date-fields">
+        <input type="number" id="birthYear" placeholder="年" min="1900" max="2024" style="width:90px;">
+        <span class="date-sep">年</span>
+        <input type="number" id="birthMonth" class="month" placeholder="月" min="1" max="12" style="width:70px;">
+        <span class="date-sep">月</span>
+        <input type="number" id="birthDay" class="day" placeholder="日" min="1" max="31" style="width:70px;">
+        <span class="date-sep">日</span>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="goToStep(2)">次へ →</button>
+    </div>
+  </div>
+
+  <!-- ===== STEP 2: お肌・ご要望 ===== -->
+  <div class="step-panel" id="step2">
+    <div class="card">
+      <div class="card-title">お肌のお悩み（複数回答可）</div>
+      <div class="checkbox-grid" id="skinConcerns">
+        <label class="check-item" onclick="toggleCheck(this)">
+          <input type="checkbox" value="しわ・たるみ">しわ・たるみ
+        </label>
+        <label class="check-item" onclick="toggleCheck(this)">
+          <input type="checkbox" value="しみ・そばかす">しみ・そばかす
+        </label>
+        <label class="check-item" onclick="toggleCheck(this)">
+          <input type="checkbox" value="くすみ">くすみ
+        </label>
+        <label class="check-item" onclick="toggleCheck(this)">
+          <input type="checkbox" value="肌荒れ">肌荒れ
+        </label>
+        <label class="check-item" onclick="toggleCheck(this)">
+          <input type="checkbox" value="乾燥・カサつき">乾燥・カサつき
+        </label>
+        <label class="check-item" onclick="toggleCheck(this)">
+          <input type="checkbox" value="敏感肌">敏感肌
+        </label>
+        <label class="check-item" onclick="toggleCheck(this)">
+          <input type="checkbox" value="毛穴の目立ち">毛穴の目立ち
+        </label>
+        <label class="check-item" onclick="toggleCheck(this)">
+          <input type="checkbox" value="ニキビ・吹き出物">ニキビ・吹き出物
+        </label>
+        <div class="other-input-row">
+          <label class="check-item" onclick="toggleCheck(this)" style="flex-shrink:0;">
+            <input type="checkbox" id="otherCheck" value="その他">その他
+          </label>
+          <input type="text" id="otherSkin" placeholder="詳しくご記入ください" style="flex:1;">
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">ご要望欄</div>
+      <textarea id="requests" placeholder="ご要望・ご質問などをご自由にお書きください" rows="4"></textarea>
+    </div>
+
+    <div class="card">
+      <div class="card-title">お客様ご確認欄</div>
+      <p style="font-size:13px; color:var(--gray); margin-bottom:14px;">下記の項目を必ずご確認ください。</p>
+
+      <strong style="font-size:14px; color:var(--accent); display:block; margin-bottom:10px;">＜個人情報の取り扱いについて＞</strong>
+
+      <label class="agreement-item" id="agree1" onclick="toggleAgreement(this)">
+        <input type="checkbox" id="agreePrivacy1">
+        <div class="agreement-text">
+          弊社は、個人情報に関する法令及びその他の規範について遵守いたします。
+        </div>
+      </label>
+
+      <label class="agreement-item" id="agree2" onclick="toggleAgreement(this)">
+        <input type="checkbox" id="agreePrivacy2">
+        <div class="agreement-text">
+          ご記入いただいたお客様の個人情報は、弊社の各種キャンペーンや物産展開催のお知らせ、商品の発送やお問い合わせといった業務上必要な範囲以外での使用は致しません。
+        </div>
+      </label>
+
+      <strong style="font-size:14px; color:var(--accent); display:block; margin: 14px 0 10px;">＜弊社顧客サービスについて＞</strong>
+
+      <label class="agreement-item" id="agree3" onclick="toggleAgreement(this)">
+        <input type="checkbox" id="agreeService">
+        <div class="agreement-text">
+          弊社規定のポイント付加条件以外の特別なサービスは、ポイント対象外になります。
+        </div>
+      </label>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="goToStep(1)">← 戻る</button>
+      <button class="btn btn-primary" onclick="goToStep(3)">次へ →</button>
+    </div>
+  </div>
+
+  <!-- ===== STEP 3: 購入商品 ===== -->
+  <div class="step-panel" id="step3">
+    <div class="card">
+      <div class="card-title">初回購入伝票</div>
+      <div class="product-search-bar">
+        <input type="text" id="productSearch" placeholder="商品名で絞り込み..." oninput="filterProducts(this.value)">
+      </div>
+      <div class="product-grid" id="productGrid">
+        <!-- Products rendered by JS -->
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="goToStep(2)">← 戻る</button>
+      <button class="btn btn-primary" onclick="goToStep(4)">次へ →</button>
+    </div>
+  </div>
+
+  <!-- ===== STEP 4: 確認・送信 ===== -->
+  <div class="step-panel" id="step4">
+    <div class="card" id="summaryCustomer">
+      <div class="card-title">お客様情報の確認</div>
+      <div id="summaryContent"></div>
+    </div>
+
+    <div class="card" id="summaryPurchase">
+      <div class="card-title">購入商品の確認</div>
+      <div id="purchaseSummaryContent"></div>
+      <div style="margin-top:16px; padding-top:14px; border-top:2px solid var(--border);">
+        <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+          <span style="font-size:14px; color:var(--gray);">合計（税抜）</span>
+          <span style="font-size:16px; font-weight:700;" id="summarySubtotal">¥0</span>
+        </div>
+        <div style="display:flex; justify-content:space-between;">
+          <span style="font-size:14px; color:var(--gray);">合計（税込）</span>
+          <span style="font-size:20px; font-weight:800; color:var(--accent);" id="summaryTotal">¥0</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="goToStep(3)">← 戻る</button>
+      <button class="btn btn-submit" onclick="submitForm()">送信する</button>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<!-- Total Bar (visible on step 3) -->
+<div class="total-bar" id="totalBar" style="display:none;">
+  <div>
+    <div class="total-label">選択商品</div>
+    <div style="font-size:18px; font-weight:700; color:var(--accent);" id="totalItemCount">0点</div>
+  </div>
+  <div class="total-info">
+    <div class="total-label">合計（税込）</div>
+    <div class="total-amount" id="totalAmount">¥0</div>
+  </div>
+</div>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+  <div style="font-size:16px; font-weight:600; color:var(--gray);">送信中...</div>
+</div>
+
+<!-- Success Modal -->
+<div class="modal-overlay" id="successModal">
+  <div class="modal">
+    <div class="modal-icon">✅</div>
+    <h2>送信完了</h2>
+    <p>お客様情報と購入内容をスプレッドシートに記録しました。<br>ありがとうございました。</p>
+    <button class="btn btn-primary" onclick="resetForm()">新しいお客様</button>
+  </div>
+</div>
+
+<!-- Error Modal -->
+<div class="modal-overlay" id="errorModal">
+  <div class="modal">
+    <div class="modal-icon">❌</div>
+    <h2>送信エラー</h2>
+    <p id="errorMessage">送信中にエラーが発生しました。<br>再度お試しください。</p>
+    <button class="btn btn-primary" onclick="document.getElementById('errorModal').classList.remove('show')">閉じる</button>
+  </div>
+</div>
+
+<script>
+  // ===== CONFIGURATION =====
+  // Google Apps Script のデプロイURLをここに設定してください
+  const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzjrKMqujlA0n_oe90IthUbfIT26_AI7rUOc_JuEniSOdp9EP4pDPD8OqE8pjtVzs-H/exec';
+
+  // ===== PRODUCT DATA =====
+  const PRODUCTS = [
+    // 初絹シリーズ
+    { id: 1,  name: '初絹マッサージ',    price: 6300,  variant: false },
+    { id: 2,  name: '初絹ウォッシュ',    price: 4800,  variant: false },
+    { id: 3,  name: '初絹ローション',    price: 6500,  variant: false },
+    { id: 4,  name: 'エッセンスII',      price: 10500, variant: false },
+    { id: 5,  name: '初絹クリーム',      price: 10500, variant: false },
+    { id: 6,  name: '初絹コントロール',  price: 5500,  variant: false },
+    { id: 7,  name: '初絹ファンデ',      price: 5500,  variant: true,  variantLabel: '色番' },
+    { id: 8,  name: 'クリームファンデ',  price: 4000,  variant: true,  variantLabel: '色番' },
+    { id: 9,  name: 'パウダー（7g）',    price: 3800,  variant: false },
+    { id: 10, name: 'パウダー（20g）',   price: 7000,  variant: false },
+    { id: 11, name: 'カラーズパレット',  price: 5800,  variant: true,  variantLabel: '色番' },
+    { id: 12, name: 'リップ詰替',        price: 1400,  variant: true,  variantLabel: '色番' },
+    { id: 13, name: 'チーク詰替',        price: 1400,  variant: true,  variantLabel: '色番' },
+    { id: 14, name: 'アイブロー詰替',    price: 1400,  variant: true,  variantLabel: '色番' },
+    { id: 15, name: 'アミノスキンケア',  price: 5000,  variant: false },
+    { id: 16, name: 'シルクシャンプー',  price: 4500,  variant: false },
+    { id: 17, name: 'スーパーシルク3',   price: 3200,  variant: false },
+    { id: 18, name: '日焼け止めジェル',  price: 1980,  variant: false },
+    { id: 19, name: '黒糖洗顔',          price: 2800,  variant: false },
+    // 純絹シリーズ
+    { id: 20, name: '純絹マッサージ',    price: 12000, variant: false },
+    { id: 21, name: '純絹ウォッシュ',    price: 8000,  variant: false },
+    { id: 22, name: '純絹ローション',    price: 10000, variant: false },
+    { id: 23, name: '純絹エッセンス',    price: 20000, variant: false },
+    { id: 24, name: '純絹クリーム',      price: 20000, variant: false },
+    // クラウンシリーズ
+    { id: 25, name: 'クラウンクリーム',  price: 30000, variant: false },
+    { id: 26, name: 'クラウンローション',price: 15000, variant: false },
+    // フィブロシリーズ
+    { id: 27, name: 'フィブロクレンジング', price: 6700, variant: false },
+    { id: 28, name: 'フィブロウォッシュ', price: 5200, variant: false },
+    { id: 29, name: 'フィブロローション', price: 6900, variant: false },
+    // その他
+    { id: 30, name: 'パールパウダー（4g）', price: 4500, variant: false },
+    { id: 31, name: '霊芝（120g）',       price: 10000, variant: false },
+    { id: 32, name: 'アクティブキープ（160g）', price: 10000, variant: false },
+    { id: 33, name: '絹結髪',             price: 5500,  variant: false },
+    { id: 34, name: 'ハミガキ',           price: 2800,  variant: false },
+    { id: 35, name: '絹優',               price: 15000, variant: false },
+    { id: 36, name: '初絹トライアルセット', price: 1800, variant: false },
+  ];
+
+  // ===== STATE =====
+  const quantities = {}; // { productId: { qty, variant } }
+  let currentStep = 1;
+
+  // ===== INITIALIZE =====
+  window.onload = function() {
+    // Set today's date
+    const today = new Date();
+    document.getElementById('headerDate').value = today.toISOString().split('T')[0];
+    renderProducts(PRODUCTS);
+  };
+
+  // ===== STEP NAVIGATION =====
+  function goToStep(step) {
+    if (step === 4) buildSummary();
+
+    document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('step' + step).classList.add('active');
+
+    document.querySelectorAll('.step-tab').forEach((tab, i) => {
+      tab.classList.remove('active', 'done');
+      const tabStep = parseInt(tab.dataset.step);
+      if (tabStep === step) tab.classList.add('active');
+      else if (tabStep < step) tab.classList.add('done');
+    });
+
+    currentStep = step;
+    document.getElementById('totalBar').style.display = step === 3 ? 'flex' : 'none';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // ===== TOGGLE CHECKBOX =====
+  function toggleCheck(label) {
+    const cb = label.querySelector('input[type="checkbox"]');
+    // Let default behavior handle checkbox state
+    setTimeout(() => {
+      label.classList.toggle('checked', cb.checked);
+    }, 0);
+  }
+
+  function toggleAgreement(label) {
+    const cb = label.querySelector('input[type="checkbox"]');
+    setTimeout(() => {
+      label.classList.toggle('checked', cb.checked);
+    }, 0);
+  }
+
+  // ===== POSTAL CODE =====
+  function formatPostal(input) {
+    let val = input.value.replace(/[^0-9]/g, '');
+    if (val.length > 3) val = val.slice(0, 3) + '-' + val.slice(3, 7);
+    input.value = val;
+  }
+
+  async function searchAddress() {
+    const postal = document.getElementById('postal').value.replace('-', '');
+    if (postal.length !== 7) { alert('郵便番号は7桁で入力してください'); return; }
+    try {
+      const res = await fetch(`https://zipcloud.ibsnet.co.jp/api/search?zipcode=${postal}`);
+      const data = await res.json();
+      if (data.results) {
+        const r = data.results[0];
+        document.getElementById('address1').value = r.address1 + r.address2 + r.address3;
+      } else {
+        alert('住所が見つかりませんでした');
+      }
+    } catch(e) {
+      alert('住所検索に失敗しました');
+    }
+  }
+
+  // ===== PRODUCTS =====
+  function renderProducts(products) {
+    const grid = document.getElementById('productGrid');
+    grid.innerHTML = products.map(p => `
+      <div class="product-item ${(quantities[p.id]?.qty || 0) > 0 ? 'selected' : ''}" id="pitem-${p.id}">
+        <div class="product-name">${p.name}</div>
+        <div class="product-price">¥<span>${p.price.toLocaleString()}</span>（税抜）</div>
+        <div class="qty-control">
+          <button class="qty-btn minus" onclick="changeQty(${p.id}, -1)">−</button>
+          <div class="qty-display" id="qty-${p.id}">${quantities[p.id]?.qty || 0}</div>
+          <button class="qty-btn plus" onclick="changeQty(${p.id}, 1)">＋</button>
+        </div>
+        ${p.variant ? `
+        <div class="variant-input" id="variant-${p.id}" style="display:${(quantities[p.id]?.qty || 0) > 0 ? 'block' : 'none'}">
+          <input type="text" placeholder="${p.variantLabel}を入力"
+            value="${quantities[p.id]?.variant || ''}"
+            oninput="setVariant(${p.id}, this.value)"
+            style="font-size:13px; padding:6px 8px;">
+        </div>` : ''}
+      </div>
+    `).join('');
+  }
+
+  function changeQty(id, delta) {
+    if (!quantities[id]) quantities[id] = { qty: 0, variant: '' };
+    quantities[id].qty = Math.max(0, quantities[id].qty + delta);
+
+    const qtyEl = document.getElementById('qty-' + id);
+    if (qtyEl) qtyEl.textContent = quantities[id].qty;
+
+    const item = document.getElementById('pitem-' + id);
+    if (item) item.classList.toggle('selected', quantities[id].qty > 0);
+
+    const variantEl = document.getElementById('variant-' + id);
+    if (variantEl) variantEl.style.display = quantities[id].qty > 0 ? 'block' : 'none';
+
+    updateTotal();
+  }
+
+  function setVariant(id, value) {
+    if (!quantities[id]) quantities[id] = { qty: 0, variant: '' };
+    quantities[id].variant = value;
+  }
+
+  function filterProducts(query) {
+    const filtered = PRODUCTS.filter(p => p.name.includes(query));
+    renderProducts(filtered);
+  }
+
+  function updateTotal() {
+    let totalExTax = 0, count = 0;
+    PRODUCTS.forEach(p => {
+      const qty = quantities[p.id]?.qty || 0;
+      totalExTax += p.price * qty;
+      count += qty;
+    });
+    const totalIncTax = Math.floor(totalExTax * 1.1);
+    document.getElementById('totalAmount').textContent = '¥' + totalIncTax.toLocaleString();
+    document.getElementById('totalItemCount').textContent = count + '点';
+  }
+
+  // ===== SUMMARY =====
+  function buildSummary() {
+    // Customer summary
+    const gender = document.querySelector('input[name="gender"]:checked')?.value || '未選択';
+    const skinList = [...document.querySelectorAll('#skinConcerns input[type="checkbox"]:checked')]
+      .map(cb => {
+        if (cb.value === 'その他') {
+          const other = document.getElementById('otherSkin').value;
+          return other ? `その他（${other}）` : 'その他';
+        }
+        return cb.value;
+      });
+    const birth = [
+      document.getElementById('birthYear').value,
+      document.getElementById('birthMonth').value,
+      document.getElementById('birthDay').value
+    ].filter(Boolean).join('/');
+
+    const nameSei = document.getElementById('name_sei').value;
+    const nameMei = document.getElementById('name_mei').value;
+    const furiganaSei = document.getElementById('furigana_sei').value;
+    const furiganaMei = document.getElementById('furigana_mei').value;
+
+    document.getElementById('summaryContent').innerHTML = `
+      <div class="summary-row"><span class="s-label">フリガナ</span><span class="s-value">${(furiganaSei + '　' + furiganaMei).trim() || '未入力'}</span></div>
+      <div class="summary-row"><span class="s-label">お名前</span><span class="s-value">${(nameSei + '　' + nameMei).trim() || '未入力'}</span></div>
+      <div class="summary-row"><span class="s-label">性別</span><span class="s-value">${gender}</span></div>
+      <div class="summary-row"><span class="s-label">郵便番号</span><span class="s-value">${document.getElementById('postal').value || '未入力'}</span></div>
+      <div class="summary-row"><span class="s-label">住所</span><span class="s-value">${(document.getElementById('address1').value + ' ' + document.getElementById('address2').value).trim() || '未入力'}</span></div>
+      <div class="summary-row"><span class="s-label">電話番号</span><span class="s-value">${document.getElementById('tel').value || '未入力'}</span></div>
+      <div class="summary-row"><span class="s-label">携帯番号</span><span class="s-value">${document.getElementById('mobile').value || '未入力'}</span></div>
+      <div class="summary-row"><span class="s-label">お誕生日</span><span class="s-value">${birth || '未入力'}</span></div>
+      <div class="summary-row"><span class="s-label">メール</span><span class="s-value">${document.getElementById('email').value || '未入力'}</span></div>
+      <div class="summary-row"><span class="s-label">お肌のお悩み</span><span class="s-value">${skinList.length > 0 ? skinList.join('、') : 'なし'}</span></div>
+      <div class="summary-row"><span class="s-label">ご要望</span><span class="s-value">${document.getElementById('requests').value || 'なし'}</span></div>
+    `;
+
+    // Purchase summary
+    const selectedItems = PRODUCTS.filter(p => (quantities[p.id]?.qty || 0) > 0);
+    let totalExTax = 0;
+    const itemsHtml = selectedItems.map(p => {
+      const qty = quantities[p.id].qty;
+      const variant = quantities[p.id].variant || '';
+      const subtotal = p.price * qty;
+      totalExTax += subtotal;
+      return `<div class="sps-item">
+        <span class="name">${p.name}${variant ? `【${variant}】` : ''} × ${qty}</span>
+        <span class="subtotal">¥${subtotal.toLocaleString()}</span>
+      </div>`;
+    }).join('');
+
+    document.getElementById('purchaseSummaryContent').innerHTML = selectedItems.length > 0
+      ? itemsHtml
+      : '<p style="color:var(--gray); text-align:center; padding:16px;">購入商品なし</p>';
+
+    const totalIncTax = Math.floor(totalExTax * 1.1);
+    document.getElementById('summarySubtotal').textContent = '¥' + totalExTax.toLocaleString();
+    document.getElementById('summaryTotal').textContent = '¥' + totalIncTax.toLocaleString();
+  }
+
+  // ===== SUBMIT =====
+  async function submitForm() {
+    if (!document.getElementById('name_sei').value.trim() || !document.getElementById('name_mei').value.trim()) {
+      alert('お名前（姓・名）を入力してください');
+      goToStep(1);
+      return;
+    }
+
+    const gender = document.querySelector('input[name="gender"]:checked')?.value || '';
+    const skinConcerns = [...document.querySelectorAll('#skinConcerns input[type="checkbox"]:checked')]
+      .map(cb => {
+        if (cb.value === 'その他') {
+          const other = document.getElementById('otherSkin').value;
+          return other ? `その他（${other}）` : 'その他';
+        }
+        return cb.value;
+      });
+
+    const selectedProducts = PRODUCTS
+      .filter(p => (quantities[p.id]?.qty || 0) > 0)
+      .map(p => ({
+        name: p.name,
+        price: p.price,
+        qty: quantities[p.id].qty,
+        variant: quantities[p.id].variant || '',
+        subtotal: p.price * quantities[p.id].qty
+      }));
+
+    const totalExTax = selectedProducts.reduce((s, p) => s + p.subtotal, 0);
+    const totalIncTax = Math.floor(totalExTax * 1.1);
+
+    const birth = [
+      document.getElementById('birthYear').value,
+      document.getElementById('birthMonth').value,
+      document.getElementById('birthDay').value
+    ].filter(Boolean).join('/');
+
+    const payload = {
+      // Header info
+      date: document.getElementById('headerDate').value,
+      staff: document.getElementById('headerStaff').value,
+      // Customer card
+      furiganaSei: document.getElementById('furigana_sei').value,
+      furiganaMei: document.getElementById('furigana_mei').value,
+      nameSei: document.getElementById('name_sei').value,
+      nameMei: document.getElementById('name_mei').value,
+      name: document.getElementById('name_sei').value + '　' + document.getElementById('name_mei').value,
+      gender: gender,
+      postal: document.getElementById('postal').value,
+      address1: document.getElementById('address1').value,
+      address2: document.getElementById('address2').value,
+      tel: document.getElementById('tel').value,
+      mobile: document.getElementById('mobile').value,
+      birthday: birth,
+      email: document.getElementById('email').value,
+      skinConcerns: skinConcerns.join('、'),
+      requests: document.getElementById('requests').value,
+      agreePrivacy1: document.getElementById('agreePrivacy1').checked,
+      agreePrivacy2: document.getElementById('agreePrivacy2').checked,
+      agreeService: document.getElementById('agreeService').checked,
+      // Purchase
+      products: selectedProducts,
+      totalExTax: totalExTax,
+      totalIncTax: totalIncTax
+    };
+
+    if (APPS_SCRIPT_URL === 'https://script.google.com/macros/s/AKfycbzjrKMqujlA0n_oe90IthUbfIT26_AI7rUOc_JuEniSOdp9EP4pDPD8OqE8pjtVzs-H/exec') {
+      // Demo mode - show success without actually sending
+      console.log('送信データ (デモ):', JSON.stringify(payload, null, 2));
+      document.getElementById('successModal').classList.add('show');
+      return;
+    }
+
+    document.getElementById('loadingOverlay').classList.add('show');
+
+    // Google Apps Script への送信: GET + URLパラメータ方式（最確実）
+    sendToGAS(APPS_SCRIPT_URL, payload)
+      .then(() => {
+        document.getElementById('loadingOverlay').classList.remove('show');
+        document.getElementById('successModal').classList.add('show');
+      })
+      .catch(err => {
+        document.getElementById('loadingOverlay').classList.remove('show');
+        document.getElementById('errorMessage').textContent = '送信エラー: ' + err.message;
+        document.getElementById('errorModal').classList.add('show');
+      });
+  }
+
+  // ===== SEND TO GAS (GET + URLパラメータ方式) =====
+  function sendToGAS(url, data) {
+    return new Promise((resolve, reject) => {
+      try {
+        const fullUrl = url + '?data=' + encodeURIComponent(JSON.stringify(data));
+        fetch(fullUrl, { mode: 'no-cors' })
+          .then(() => resolve())
+          .catch(err => reject(err));
+      } catch(err) {
+        reject(err);
+      }
+    });
+  }
+
+  // ===== RESET =====
+  function resetForm() {
+    document.getElementById('successModal').classList.remove('show');
+    document.getElementById('furigana_sei').value = '';
+    document.getElementById('furigana_mei').value = '';
+    document.getElementById('name_sei').value = '';
+    document.getElementById('name_mei').value = '';
+    document.querySelectorAll('input[name="gender"]').forEach(r => r.checked = false);
+    document.getElementById('postal').value = '';
+    document.getElementById('address1').value = '';
+    document.getElementById('address2').value = '';
+    document.getElementById('tel').value = '';
+    document.getElementById('mobile').value = '';
+    document.getElementById('birthYear').value = '';
+    document.getElementById('birthMonth').value = '';
+    document.getElementById('birthDay').value = '';
+    document.getElementById('email').value = '';
+    document.getElementById('requests').value = '';
+    document.getElementById('otherSkin').value = '';
+    document.querySelectorAll('#skinConcerns input[type="checkbox"]').forEach(cb => cb.checked = false);
+    document.querySelectorAll('.check-item').forEach(el => el.classList.remove('checked'));
+    document.querySelectorAll('.agreement-item').forEach(el => el.classList.remove('checked'));
+    document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+
+    // Reset quantities
+    Object.keys(quantities).forEach(k => delete quantities[k]);
+    updateTotal();
+    renderProducts(PRODUCTS);
+
+    const today = new Date();
+    document.getElementById('headerDate').value = today.toISOString().split('T')[0];
+    document.getElementById('headerStaff').value = '';
+    goToStep(1);
+  }
+</script>
+</body>
+</html>
