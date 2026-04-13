@@ -551,19 +551,16 @@
           <input type="text" id="name_mei" placeholder="例：花子">
         </div>
       </div>
-      <div class="form-row col-2">
-        <div>
-        <div>
-          <label>性別 <span class="required">必須</span></label>
-          <div class="radio-group" id="genderGroup">
-            <div class="radio-btn">
-              <input type="radio" name="gender" id="male" value="男">
-              <label for="male">男性</label>
-            </div>
-            <div class="radio-btn">
-              <input type="radio" name="gender" id="female" value="女">
-              <label for="female">女性</label>
-            </div>
+      <div class="form-group">
+        <label>性別 <span class="required">必須</span></label>
+        <div class="radio-group" id="genderGroup">
+          <div class="radio-btn">
+            <input type="radio" name="gender" id="male" value="男">
+            <label for="male">男性</label>
+          </div>
+          <div class="radio-btn">
+            <input type="radio" name="gender" id="female" value="女">
+            <label for="female">女性</label>
           </div>
         </div>
       </div>
@@ -580,11 +577,11 @@
         </div>
       </div>
       <div class="form-group">
-        <label>ご住所（都道府県・市区町村）</label>
+        <label>ご住所（都道府県・市区町村）<span class="required">必須</span></label>
         <input type="text" id="address1" placeholder="例：東京都渋谷区">
       </div>
       <div class="form-group">
-        <label>ご住所（番地・建物名・部屋番号）</label>
+        <label>ご住所（番地・建物名・部屋番号）<span class="required">必須</span></label>
         <input type="text" id="address2" placeholder="例：1-2-3 ○○マンション 101号">
       </div>
     </div>
@@ -597,7 +594,7 @@
           <input type="tel" id="tel" placeholder="例：03-1234-5678">
         </div>
         <div>
-          <label>携帯番号</label>
+          <label>携帯番号<span class="required">必須</span></label>
           <input type="tel" id="mobile" placeholder="例：090-1234-5678">
         </div>
       </div>
@@ -1038,6 +1035,16 @@
       goToStep(1);
       return;
     }
+    if (!document.getElementById('address1').value.trim() || !document.getElementById('address2').value.trim()) {
+      alert('ご住所を入力してください');
+      goToStep(1);
+      return;
+    }
+    if (!document.getElementById('mobile').value.trim()) {
+      alert('携帯番号を入力してください');
+      goToStep(1);
+      return;
+    }
 
     const gender = document.querySelector('input[name="gender"]:checked')?.value || '';
     const skinConcerns = [...document.querySelectorAll('#skinConcerns input[type="checkbox"]:checked')]
@@ -1096,13 +1103,6 @@
       totalExTax: totalExTax,
       totalIncTax: totalIncTax
     };
-
-    if (APPS_SCRIPT_URL === 'https://script.google.com/macros/s/AKfycbzjrKMqujlA0n_oe90IthUbfIT26_AI7rUOc_JuEniSOdp9EP4pDPD8OqE8pjtVzs-H/exec') {
-      // Demo mode - show success without actually sending
-      console.log('送信データ (デモ):', JSON.stringify(payload, null, 2));
-      document.getElementById('successModal').classList.add('show');
-      return;
-    }
 
     document.getElementById('loadingOverlay').classList.add('show');
 
